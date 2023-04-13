@@ -22,14 +22,22 @@ class MysqlDriver:
             except:
                 self.__db.rollback()
 
-    def preparedKeywordCount(self, year, keyword):
-        with self.__db.cursor(prepared=True) as cursor:
-            preparedQuery = f'''
-            select count(title) as cnt from countkeyword
-            where year = '%s' and name = '%s';
+    def keywordCountByYear(self, keywordList, yearRange):
+        with self.__db.cursor() as cursor:
+            keywordSet = '('
+            for keyword in keywordList:
+                keywordSet += '\'' + keyword +'\'' +','
+            keywordSet = keywordSet[:-1] + ')'
+            # print(keywordSet)
+            sql = f'''
+            SELECT COUNT(*), year, name 
+            FROM countkeyword
+            WHERE year >= {yearRange[0]} AND year <= {yearRange[1]} AND name IN {keywordSet}
+            GROUP BY name, year
+            ORDER BY name, year
             '''
-            parameter = (year, keyword)
-            cursor.execute(preparedQuery, params=parameter)
+            cursor.execute(sql)
             data = cursor.fetchall()
+            # print(data)
             return data
 

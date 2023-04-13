@@ -8,7 +8,7 @@ app = Dash(__name__)
 mysqlDriver = MysqlDriver()
 
 tableResult = mysqlDriver.select('select * from faculty limit 50')
-# print(pd.DataFrame(tableResult))
+# print(pd.DataFrame(tableResult).to_dict('records'))
 completeKeywordSet = mysqlDriver.select('select name from keyword')
 # print(completeKeywordSet)
 
@@ -22,12 +22,12 @@ widget1 = html.Div([
     dcc.Graph(id='keyword count line chart'),
     dcc.RangeSlider(
         min=1900,
-        max=2021,
+        max=2022,
         step=1,
         marks={i: '{}'.format(i) for i in range(1900, 2022, 10)},
         tooltip={"placement": "bottom", "always_visible": False},
         id='year slider',
-        value=[1975, 2015],
+        value=[1900, 2022],
         allowCross=False
     )
 ])
@@ -46,21 +46,13 @@ app.layout = html.Div([
     Input('year slider', 'value')
 )
 def updateKeywordCountLineChart(dropDownValue, rangeSliderValue):
-    dt = {'year': [], 'count': [], 'keyword': []}
-    for keyword in dropDownValue:
-        for year in range(rangeSliderValue[0], rangeSliderValue[1] + 1):
-            # sql = f'''
-            # select count(t3.title) as cnt
-            # from keyword t1
-            # inner join publication_keyword t2 on t2.keyword_id = t1.id
-            # inner join publication t3 on t3.id = t2.publication_id
-            # where t3.year = '{year}' and t1.name = '{keyword}';
-            # '''
-            queryResult = mysqlDriver.preparedKeywordCount(year, keyword)
-            dt['year'].append(year)
-            dt['count'].append(queryResult[0][0])
-            dt['keyword'].append(keyword)
-            fig = px.line(pd.DataFrame(data=dt), x='year', y='count', color='keyword')
+    if not dropDownValue:
+        fig = px.line(pd.DataFrame(data=[]))
+        return fig
+    queryResult = mysqlDriver.keywordCountByYear(dropDownValue, rangeSliderValue)
+    # print(pd.DataFrame(data=queryResult, columns=['count', 'year', 'name']))
+    fig = px.line(pd.DataFrame(data=queryResult, columns=['count', 'year', 'name']).astype({'year': 'int'}),
+                  x='year', y='count', color='name')
     return fig
 
 if __name__ == '__main__':
