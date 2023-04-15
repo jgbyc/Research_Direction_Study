@@ -2,10 +2,12 @@ from dash import Dash, html, dash_table, dcc, callback, Output, Input, State
 import plotly.express as px
 import pandas as pd
 from mysql_utils import MysqlDriver
+from mongodb_utils import mongodb_utils
 
 app = Dash(__name__)
 
 mysqlDriver = MysqlDriver()
+mongoDriver = mongodb_utils()
 
 tableResult = mysqlDriver.select('select * from faculty limit 50')
 # print(pd.DataFrame(tableResult).to_dict('records'))
@@ -32,11 +34,17 @@ widget1 = html.Div([
     )
 ])
 
+widget2 = html.Div([
+    dcc.Graph(
+        id='Top Publications by Keyword'
+    )
+])
 # Main layout
 app.layout = html.Div([
     html.H1(children='This is the Main tittle'),
     dash_table.DataTable(data=pd.DataFrame(tableResult).to_dict('records'), page_size=6),
-    widget1
+    widget1,
+    widget2
 ])
 
 # Callback section
@@ -53,6 +61,18 @@ def updateKeywordCountLineChart(dropDownValue, rangeSliderValue):
     # print(pd.DataFrame(data=queryResult, columns=['count', 'year', 'name']))
     fig = px.line(pd.DataFrame(data=queryResult, columns=['count', 'year', 'name']).astype({'year': 'int'}),
                   x='year', y='count', color='name')
+    return fig
+
+@app.callback(
+    Output('Top Publications by Keyword', 'figure'),
+    Input('keyword selection', 'value'),
+)
+def updateTop25PublicationsByKeyword(dropDownValue):
+    if not dropDownValue:
+        fig = px.line(pd.DataFrame(data=[]))
+        return fig
+    queryResult = mongoDriver.top_pub(dropDownValue)
+    fig = px.scatter(queryResult, x='year', y='numCitations', log_y = [1000,20000],color='title', hover_name='title', hover_data=['title', 'numCitations', 'year'])
     return fig
 
 if __name__ == '__main__':
