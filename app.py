@@ -3,11 +3,13 @@ import plotly.express as px
 import pandas as pd
 from mysql_utils import MysqlDriver
 from mongodb_utils import mongodb_utils
+from neo4j_utils import neo4j_utils
 
 app = Dash(__name__)
 
 mysqlDriver = MysqlDriver()
 mongoDriver = mongodb_utils()
+neo4jDriver = neo4j_utils()
 
 tableResult = mysqlDriver.select('select * from faculty limit 50')
 # print(pd.DataFrame(tableResult).to_dict('records'))
@@ -39,12 +41,20 @@ widget2 = html.Div([
         id='Top Publications by Keyword'
     )
 ])
+
+widget3 = html.Div([
+    dcc.Graph(
+        id='Top University by Keyword'
+    )
+])
+
 # Main layout
 app.layout = html.Div([
     html.H1(children='This is the Main tittle'),
     dash_table.DataTable(data=pd.DataFrame(tableResult).to_dict('records'), page_size=6),
     widget1,
-    widget2
+    widget2,
+    widget3
 ])
 
 # Callback section
