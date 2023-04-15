@@ -2,10 +2,14 @@ from dash import Dash, html, dash_table, dcc, callback, Output, Input, State
 import plotly.express as px
 import pandas as pd
 from mysql_utils import MysqlDriver
+from mongodb_utils import mongodb_utils
+from neo4j_utils import neo4j_utils
 
 app = Dash(__name__)
 
 mysqlDriver = MysqlDriver()
+mongoDriver = mongodb_utils()
+neo4jDriver = neo4j_utils()
 
 # tableResult = mysqlDriver.select('select * from faculty limit 50')
 # print(pd.DataFrame(tableResult).to_dict('records'))
@@ -45,13 +49,27 @@ facultyWidget = html.Div([
     dcc.Input(id="faculty research interest", type="text", placeholder="Input Research Interest"),
     dcc.Input(id="faculty photo_url", type="url", placeholder="Input Photo Url"),
 
-    dash_table.DataTable(id='faculty table', page_size=6),
+    dash_table.DataTable(id='faculty table', page_size=6)
+])
+
+widget2 = html.Div([
+    dcc.Graph(
+        id='Top Publications by Keyword'
+    )
+])
+
+widget3 = html.Div([
+    dcc.Graph(
+        id='Top University by Keyword'
+    )
 ])
 
 # Main layout
 app.layout = html.Div([
     html.H1(children='This is the Main tittle'),
     widget1,
+    widget2,
+    widget3,
     facultyWidget
 ])
 
@@ -83,6 +101,18 @@ def getFacultyInformation(queryName, queryPosition, queryEmail, queryPhone, quer
     queryResult = mysqlDriver.getFaculty(queryName, queryPosition, queryEmail, queryPhone, queryUniversityName)
     data = pd.DataFrame(data=queryResult, columns=['Name', 'Position', 'Email', 'Phone', 'University']).to_dict('records')
     return data
+
+@app.callback(
+    Output('Top Publications by Keyword', 'figure'),
+    Input('keyword selection', 'value'),
+)
+def updateTop25PublicationsByKeyword(dropDownValue):
+    if not dropDownValue:
+        fig = px.line(pd.DataFrame(data=[]))
+        return fig
+    queryResult = mongoDriver.top_pub(dropDownValue)
+    fig = px.scatter(queryResult, x='year', y='numCitations', log_y = [1000,20000],color='title', hover_name='title', hover_data=['title', 'numCitations', 'year'])
+    return fig
 
 if __name__ == '__main__':
     app.run_server(debug=True)
