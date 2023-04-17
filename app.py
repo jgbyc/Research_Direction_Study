@@ -18,7 +18,7 @@ completeKeywordSet = mysqlDriver.query('select name from keyword')
 # print(completeKeywordSet)
 # top keywords fig
 queryResult = neo4jDriver.top_keywords()
-keywordfig = px.histogram(queryResult, x="name", y="keyword_count", color = "name",labels={"keyword_count":"count"}, title="Top 10 Keywords", hover_data=["name","keyword_count"])
+keywordfig = px.histogram(queryResult, x="name", y="keyword_count", color = "name", labels={"keyword_count":"count"}, title="Top 10 Keywords",hover_name="name", hover_data=["name","keyword_count"])
 
 widget1 = html.Div([
     dcc.Dropdown(
@@ -86,7 +86,7 @@ app.layout = html.Div([
     facultyWidget
 ])
 
-# widget1
+# widget1 line chart
 # Callback section
 @app.callback(
     Output('keyword count line chart', 'figure'),
@@ -117,7 +117,7 @@ def getFacultyInformation(queryName, queryPosition, queryEmail, queryPhone, quer
     data = pd.DataFrame(data=queryResult, columns=['Name', 'Position', 'Email', 'Phone', 'University']).to_dict('records')
     return data
 
-# widget2
+# widget2 scatter plot
 @app.callback(
     Output('Top Publications by Keyword', 'figure'),
     Input('keyword selection', 'value'),
@@ -130,7 +130,7 @@ def updateTop25PublicationsByKeyword(dropDownValue):
     fig = px.scatter(queryResult, x='year', y='numCitations', log_y = [1000,20000],color='title', hover_name='title', hover_data=['title', 'numCitations', 'year'])
     return fig
 
-# widget3 not finished yet error with heatmap
+# widget3 treemap
 @app.callback(
     Output('Top University by Keyword', 'figure'),
     Input('keyword selection', 'value'),
@@ -140,7 +140,7 @@ def updateTop10UniveristyByKeyword(dropDownValue):
         fig = px.line(pd.DataFrame(data=[]))
         return fig
     queryResult = neo4jDriver.top_university(dropDownValue)
-    fig = go.Figure(data=go.Heatmap(queryResult))
+    fig = px.treemap(queryResult, path=["University"], values='Publication_count',color='University', width=1000, height=700, hover_name="University", hover_data=["University","Publication_count"])
     return fig
 
 

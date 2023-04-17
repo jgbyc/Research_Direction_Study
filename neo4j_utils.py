@@ -8,7 +8,7 @@ class neo4j_utils:
     def top_university(self, keyword_list):
         query = """MATCH (K:KEYWORD)<--(P:PUBLICATION)<--(F:FACULTY)-->(I:INSTITUTE)
                 WHERE K.name IN $keywords 
-                RETURN I.name AS University, count(P) AS Publication_count 
+                RETURN I.name AS University, count(P) AS Publication_count, I.photoUrl AS Pic
                 ORDER BY Publication_count DESC 
                 LIMIT 10"""
         with self.driver.session(database="academicworld") as session:
