@@ -33,3 +33,13 @@ BEGIN
 	VALUES (maxFacultyID + 1, new_faculty_name, new_position, new_researchInterest, new_email, new_phone, new_photo, targetUniversityID);
 END$$
 delimiter ;
+
+-- Create Trigger to to make sure the publication_keyword and faculty_publication tutles are deleted before delete faculty tutles.
+DELIMITER $$
+CREATE TRIGGER deletePublication BEFORE DELETE
+ON publication FOR EACH ROW
+    BEGIN
+        DELETE FROM publication_keyword WHERE publication_keyword.publication_id = OLD.id;
+        DELETE FROM faculty_publication WHERE faculty_publication.publication_id = OLD.id;
+    END$$
+DELIMITER ;

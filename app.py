@@ -38,7 +38,7 @@ widget1 = html.Div([
 
 facultyWidget = html.Div([
     html.H2(children='Faculty\' Information'),
-    html.P(children='Please use this wideget to search and update the faculty\'s information.'),
+    html.P(children='Please use this wideget to search and insert the faculty\'s information.'),
 
     dcc.Input(id="faculty name", type="text", placeholder="Input Name", debounce=True),
     dcc.Input(id="faculty position", type="text", placeholder="Input Postion", debounce=True),
@@ -49,7 +49,24 @@ facultyWidget = html.Div([
     dcc.Input(id="faculty research interest", type="text", placeholder="Input Research Interest"),
     dcc.Input(id="faculty photo_url", type="url", placeholder="Input Photo Url"),
 
-    dash_table.DataTable(id='faculty table', page_size=6)
+    dash_table.DataTable(id='faculty table', page_size=6,
+                         columns=[{'name': 'Name', 'id':'Name'}, {'name': 'Position', 'id':'Position'}, {'name': 'Email', 'id':'Email'},
+                                  {'name': 'Phone', 'id':'Phone'}, {'name': 'University', 'id':'University'}]),
+    html.Button(id='insert faculty button', n_clicks=0, children='Insert New Faculty'),
+    html.Div(id='insert new faculty state')
+])
+
+publicationWidget = html.Div([
+    html.H2(children='Publication\' Information'),
+    html.P(children='Please use this wideget to search and insert the publication\'s information.'),
+
+    dcc.Input(id="publication title", type="text", placeholder="Input Title", debounce=True),
+    dcc.Input(id="publication venue", type="text", placeholder="Input Venue", debounce=True),
+    dcc.Input(id="publication year", type="text", placeholder="Input Year", debounce=True),
+    dcc.Input(id="publication num_citations", type="number", placeholder="Input Number of Citations", debounce=True),
+    dash_table.DataTable(id='publication table', page_size=6),
+    html.Button(id='delete publication button', n_clicks=0, children='Delete listed publications'),
+    html.Div(id='delete publication state')
 ])
 
 widget2 = html.Div([
@@ -70,7 +87,8 @@ app.layout = html.Div([
     widget1,
     widget2,
     widget3,
-    facultyWidget
+    facultyWidget,
+    publicationWidget
 ])
 
 # Callback section
@@ -91,6 +109,7 @@ def updateKeywordCountLineChart(dropDownValue, rangeSliderValue):
 
 @app.callback(
     Output('faculty table', 'data'),
+    Output('faculty table', 'tooltip_data'),
     Input('faculty name', 'value'),
     Input('faculty position', 'value'),
     Input('faculty email', 'value'),
@@ -99,8 +118,58 @@ def updateKeywordCountLineChart(dropDownValue, rangeSliderValue):
 )
 def getFacultyInformation(queryName, queryPosition, queryEmail, queryPhone, queryUniversityName):
     queryResult = mysqlDriver.getFaculty(queryName, queryPosition, queryEmail, queryPhone, queryUniversityName)
-    data = pd.DataFrame(data=queryResult, columns=['Name', 'Position', 'Email', 'Phone', 'University']).to_dict('records')
+    data = pd.DataFrame(data=queryResult, columns=['Name', 'Position', 'Research Interest', 'Email', 'Phone', 'Photo URL', 'University']).to_dict('records')
+    tooltip_data = [{
+            column: {
+                'value': '**Photo:**\n\n![](' + row['Photo URL']
+                + ')\n\n**Research Interest:** ' + str(row['Research Interest']),
+                'type': 'markdown'
+            } for column in row
+        } for row in data]
+    return data, tooltip_data
+
+@app.callback(
+    Output('insert new faculty state', 'children'),
+    Input('insert faculty button', 'n_clicks'),
+    State('faculty name', 'value'),
+    State('faculty position', 'value'),
+    State('faculty email', 'value'),
+    State('faculty phone', 'value'),
+    State('faculty university name', 'value'),
+    State('faculty research interest', 'value'),
+    State('faculty photo_url', 'value')
+)
+def updateFaculty(n_clicks, insertName, insertPosition, insertEmail, insertPhone, insertUniversityName, insertResearchInterest, insertPhotoURL):
+    if (n_clicks == 0):
+        return ''
+    response = mysqlDriver.insertFaculty(insertName, insertPosition, insertEmail, insertPhone, insertUniversityName, insertResearchInterest, insertPhotoURL)
+    return response
+
+@app.callback(
+    Output('publication table', 'data'),
+    Input('publication title', 'value'),
+    Input('publication venue', 'value'),
+    Input('publication year', 'value'),
+    Input('publication num_citations', 'value')
+)
+def getPublicationInformation(queryTitle, queryVenue, queryYear, queryNumOfCitations):
+    queryResult = mysqlDriver.getPublication(queryTitle, queryVenue, queryYear, queryNumOfCitations)
+    data = pd.DataFrame(data=queryResult, columns=['Title', 'Venue', 'Year', 'Number of Citations']).to_dict('records')
     return data
+
+@app.callback(
+    Output('delete publication state', 'children'),
+    Input('delete publication button', 'n_clicks'),
+    State('publication title', 'value'),
+    State('publication venue', 'value'),
+    State('publication year', 'value'),
+    State('publication num_citations', 'value')
+)
+def updatePublication(n_clicks, title, venue, year, numOfCitations):
+    if (n_clicks == 0):
+        return ''
+    response = mysqlDriver.deletePublication(title, venue, year, numOfCitations)
+    return response
 
 @app.callback(
     Output('Top Publications by Keyword', 'figure'),

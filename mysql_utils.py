@@ -46,7 +46,7 @@ class MysqlDriver:
         
     def getFaculty(self, queryName, queryPosition, queryEmail, queryPhone, queryUniversityName):
         sql = f'''
-        SELECT faculty.name, faculty.position, faculty.email, faculty.phone, university.name
+        SELECT faculty.name, faculty.position, faculty.research_interest, faculty.email, faculty.phone, faculty.photo_url, university.name
         FROM faculty INNER JOIN university
         ON faculty.university_id = university.id
         WHERE faculty.name LIKE '%{self.xstr(queryName)}%' AND faculty.position LIKE '%{self.xstr(queryPosition)}%'
@@ -55,6 +55,56 @@ class MysqlDriver:
         '''
         return self.query(sql)
     
+    def insertFaculty(self, insertName, insertPosition, insertEmail, insertPhone, insertUniversityName, insertResearchInterest, insertPhotoURL):
+        if len(self.getFaculty(insertName, insertPosition, insertEmail, insertPhone, insertUniversityName)) > 0:
+            return 'Faculty exist.'
+
+        args = [insertName, insertPosition, insertResearchInterest, insertEmail, insertPhone, insertPhotoURL, insertUniversityName]
+        db = mysql.connector.connect(**self.__config)
+        cursor = db.cursor()
+        try:
+            cursor.callproc('updateFaculty', args)
+        except:
+            db.rollback()
+            response = 'Fail to insert.'
+        else:
+            db.commit()
+            response = 'Faculty inserted.'
+        finally:
+            cursor.close()
+            db.close()
+            return response
+    
+    def getPublication(self, queryTitle, queryVenue, queryYear, queryNumOfCitations):
+        sql = f'''
+        SELECT publication.title, publication.venue, publication.year, publication.num_citations
+        FROM publication WHERE publication.title LIKE '%{self.xstr(queryTitle)}%' AND publication.venue LIKE '%{self.xstr(queryVenue)}%'
+        AND publication.year LIKE '%{self.xstr(queryYear)}%' AND publication.num_citations LIKE '%{self.xstr(queryNumOfCitations)}%'
+        LIMIT 100;
+        '''
+        return self.query(sql)
+    
+    def deletePublication(self, title, venue, year, numOfCitations):
+        sql = f'''
+        DELETE FROM publication
+        WHERE publication.title LIKE '%{self.xstr(title)}%' AND publication.venue LIKE '%{self.xstr(venue)}%'
+        AND publication.year LIKE '%{self.xstr(year)}%' AND publication.num_citations LIKE '%{self.xstr(numOfCitations)}%';
+        '''
+        db = mysql.connector.connect(**self.__config)
+        cursor = db.cursor()
+        try:
+            cursor.execute(sql)
+        except:
+            db.rollback()
+            response = 'Fail to delete'
+        else:
+            db.commit()
+            response = 'Successively deleted'
+        finally:
+            cursor.close()
+            db.close()
+            return response
+           
     def xstr(self, s):
         return '' if s is None else str(s)
 
