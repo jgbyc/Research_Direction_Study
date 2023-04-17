@@ -4,10 +4,20 @@ import pandas as pd
 class mongodb_utils:
     
     def __init__(self):
-        self.client = pymongo.MongoClient("mongodb://localhost:27017/")
+        self.host = "mongodb://localhost:27017/"
+        self.client = None
+        self.db = None
+        self.faculty = None
+        self.publications = None
+    
+    def connect(self):
+        self.client = pymongo.MongoClient(self.host)
         self.db = self.client["academicworld"]
         self.faculty = self.db["faculty"]
         self.publications = self.db["publications"]
+
+    def close(self):
+        self.client.close()
     
     def all_faculty(self):
         result = self.faculty.distinct("name")
@@ -25,6 +35,7 @@ class mongodb_utils:
         return df
 
     def top_keywords(self):
+        self.connect()
         result = self.faculty.aggregate([
             {
                 "$group": {
@@ -37,9 +48,11 @@ class mongodb_utils:
             }
         ])
         df = pd.DataFrame(list(result))
+        self.close()
         return df
     
     def top_pub(self, keyword):
+        self.connect()
         result = self.publications.aggregate([
             {
                 "$match": {
@@ -57,4 +70,5 @@ class mongodb_utils:
             }
         ])
         df = pd.DataFrame(list(result))
+        self.close()
         return df
