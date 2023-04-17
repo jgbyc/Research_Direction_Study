@@ -1,5 +1,6 @@
 from dash import Dash, html, dash_table, dcc, callback, Output, Input, State
 import plotly.express as px
+import plotly.graph_objects as go
 import pandas as pd
 from mysql_utils import MysqlDriver
 from mongodb_utils import mongodb_utils
@@ -15,6 +16,9 @@ neo4jDriver = neo4j_utils()
 # print(pd.DataFrame(tableResult).to_dict('records'))
 completeKeywordSet = mysqlDriver.query('select name from keyword')
 # print(completeKeywordSet)
+# top keywords fig
+queryResult = neo4jDriver.top_keywords()
+keywordfig = px.histogram(queryResult, x="name", y="keyword_count", color = "name",labels={"keyword_count":"count"}, title="Top 10 Keywords", hover_data=["name","keyword_count"])
 
 widget1 = html.Div([
     dcc.Dropdown(
@@ -64,15 +68,25 @@ widget3 = html.Div([
     )
 ])
 
+widget4 = html.Div([
+    dcc.Graph(
+        id='Top Keywords',
+        figure=keywordfig
+    )
+
+])
+
 # Main layout
 app.layout = html.Div([
     html.H1(children='This is the Main tittle'),
     widget1,
     widget2,
     widget3,
+    widget4,
     facultyWidget
 ])
 
+# widget1
 # Callback section
 @app.callback(
     Output('keyword count line chart', 'figure'),
@@ -89,6 +103,7 @@ def updateKeywordCountLineChart(dropDownValue, rangeSliderValue):
                   x='year', y='count', color='name')
     return fig
 
+# facultyWidget
 @app.callback(
     Output('faculty table', 'data'),
     Input('faculty name', 'value'),
@@ -102,6 +117,7 @@ def getFacultyInformation(queryName, queryPosition, queryEmail, queryPhone, quer
     data = pd.DataFrame(data=queryResult, columns=['Name', 'Position', 'Email', 'Phone', 'University']).to_dict('records')
     return data
 
+# widget2
 @app.callback(
     Output('Top Publications by Keyword', 'figure'),
     Input('keyword selection', 'value'),
@@ -113,6 +129,20 @@ def updateTop25PublicationsByKeyword(dropDownValue):
     queryResult = mongoDriver.top_pub(dropDownValue)
     fig = px.scatter(queryResult, x='year', y='numCitations', log_y = [1000,20000],color='title', hover_name='title', hover_data=['title', 'numCitations', 'year'])
     return fig
+
+# widget3 not finished yet error with heatmap
+@app.callback(
+    Output('Top University by Keyword', 'figure'),
+    Input('keyword selection', 'value'),
+)
+def updateTop10UniveristyByKeyword(dropDownValue):
+    if not dropDownValue:
+        fig = px.line(pd.DataFrame(data=[]))
+        return fig
+    queryResult = neo4jDriver.top_university(dropDownValue)
+    fig = go.Figure(data=go.Heatmap(queryResult))
+    return fig
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
