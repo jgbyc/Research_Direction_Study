@@ -51,7 +51,8 @@ class MysqlDriver:
         ON faculty.university_id = university.id
         WHERE faculty.name LIKE '%{self.xstr(queryName)}%' AND faculty.position LIKE '%{self.xstr(queryPosition)}%'
         AND faculty.email LIKE '%{self.xstr(queryEmail)}%' AND faculty.phone LIKE '%{self.xstr(queryPhone)}%'
-        AND university.name LIKE '%{self.xstr(queryUniversityName)}%';
+        AND university.name LIKE '%{self.xstr(queryUniversityName)}%'
+        LIMIT 100;
         '''
         return self.query(sql)
     

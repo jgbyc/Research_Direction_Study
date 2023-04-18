@@ -12,36 +12,37 @@ mysqlDriver = MysqlDriver()
 mongoDriver = mongodb_utils()
 neo4jDriver = neo4j_utils()
 
-# tableResult = mysqlDriver.select('select * from faculty limit 50')
-# print(pd.DataFrame(tableResult).to_dict('records'))
 completeKeywordSet = mysqlDriver.query('select name from keyword')
-# print(completeKeywordSet)
-# top keywords fig
 queryResult = neo4jDriver.top_keywords()
 keywordfig = px.bar(queryResult, x="name", y="keyword_count", labels={"keyword_count":"count"}, color="keyword_count", color_continuous_scale="geyser", title="Top 10 Keywords", hover_name="name", hover_data=["name","keyword_count"])
 
-widget1 = html.Div([
-    dcc.Dropdown(
-        id='keyword selection',
-        options=[row[0] for row in completeKeywordSet],
-        value=['machine learning', 'simulation', 'neural networks'],
-        multi=True,
-    ),
-    dcc.Graph(id='keyword count line chart'),
-    dcc.RangeSlider(
-        min=1900,
-        max=2022,
-        step=1,
-        marks={i: '{}'.format(i) for i in range(1900, 2022, 10)},
-        tooltip={"placement": "bottom", "always_visible": False},
-        id='year slider',
-        value=[1900, 2022],
-        allowCross=False
-    )
-])
+keywordDropdown = dcc.Dropdown(
+    id='keyword selection',
+    options=[row[0] for row in completeKeywordSet],
+    value=['machine learning', 'simulation', 'neural networks'],
+    multi=True,
+)
+
+keywordCountWidget = html.Div(
+    [
+        html.H3(children='Keyword Count Trend', style={'textAlign': 'center'}),
+        dcc.Graph(id='keyword count line chart'),
+        dcc.RangeSlider(
+            min=1900,
+            max=2022,
+            step=1,
+            marks={i: '{}'.format(i) for i in range(1900, 2022, 10)},
+            tooltip={"placement": "bottom", "always_visible": False},
+            id='year slider',
+            value=[1900, 2022],
+            allowCross=False
+        )
+    ],
+    style={'width': '49%', 'display': 'inline-block', 'vertical-align': 'middle'}
+)
 
 facultyWidget = html.Div([
-    html.H2(children='Faculty\' Information'),
+    html.H3(children='Faculty\' Information', style={'textAlign': 'center'}),
     html.P(children='Please use this wideget to search and insert the faculty\'s information.'),
 
     dcc.Input(id="faculty name", type="text", placeholder="Input Name", debounce=True),
@@ -53,59 +54,122 @@ facultyWidget = html.Div([
     dcc.Input(id="faculty research interest", type="text", placeholder="Input Research Interest"),
     dcc.Input(id="faculty photo_url", type="url", placeholder="Input Photo Url"),
 
-    dash_table.DataTable(id='faculty table', page_size=6,
-                         columns=[{'name': 'Name', 'id':'Name'}, {'name': 'Position', 'id':'Position'}, {'name': 'Email', 'id':'Email'},
-                                  {'name': 'Phone', 'id':'Phone'}, {'name': 'University', 'id':'University'}]),
+    dash_table.DataTable(
+        id='faculty table', page_size=6,
+        columns=[{'name': '', 'id': 'index'}, {'name': 'Name', 'id': 'Name'}, {'name': 'Position', 'id': 'Position'}, {'name': 'Email', 'id': 'Email'},
+                 {'name': 'Phone', 'id': 'Phone'}, {'name': 'University', 'id': 'University'}],
+        style_cell={'textAlign': 'left'},
+        style_data={
+        'color': 'black',
+        'backgroundColor': 'white',
+        'whiteSpace': 'normal',
+        'height': 'auto'
+        },
+        style_data_conditional=[
+        {
+            'if': {'row_index': 'odd'},
+            'backgroundColor': 'rgb(220, 220, 220)',
+        }],
+        style_header={
+            'backgroundColor': 'rgb(210, 210, 210)',
+            'color': 'black',
+            'fontWeight': 'bold'
+        }
+        ),
     html.Button(id='insert faculty button', n_clicks=0, children='Insert New Faculty'),
     html.Div(id='insert new faculty state')
 ])
 
 publicationWidget = html.Div([
-    html.H2(children='Publication\' Information'),
+    html.H3(children='Publication\' Information', style={'textAlign': 'center'}),
     html.P(children='Please use this wideget to search and insert the publication\'s information.'),
 
     dcc.Input(id="publication title", type="text", placeholder="Input Title", debounce=True),
     dcc.Input(id="publication venue", type="text", placeholder="Input Venue", debounce=True),
     dcc.Input(id="publication year", type="text", placeholder="Input Year", debounce=True),
     dcc.Input(id="publication num_citations", type="number", placeholder="Input Number of Citations", debounce=True),
-    dash_table.DataTable(id='publication table', page_size=6),
+    dash_table.DataTable(
+        id='publication table',
+        columns=[{'name': '', 'id': 'index'}, {'name': 'Title', 'id': 'Title'}, {'name': 'Venue', 'id': 'Venue'}, {'name': 'Number of Citations', 'id': 'Number of Citations'}],
+        page_size=6,
+        style_cell={'textAlign': 'left'},
+        style_data={
+        'color': 'black',
+        'backgroundColor': 'white',
+        'whiteSpace': 'normal',
+        'height': 'auto'
+        },
+        style_data_conditional=[
+        {
+            'if': {'row_index': 'odd'},
+            'backgroundColor': 'rgb(220, 220, 220)',
+        }],
+        style_header={
+            'backgroundColor': 'rgb(210, 210, 210)',
+            'color': 'black',
+            'fontWeight': 'bold'
+        }       
+    ),
     html.Button(id='delete publication button', n_clicks=0, children='Delete listed publications'),
     html.Div(id='delete publication state')
 ])
 
-widget2 = html.Div([
-    dcc.Graph(
-        id='Top Publications by Keyword'
-    )
-])
+topPublicationWidget = html.Div(
+    [
+        html.H3(children='Top Publication per Keyword', style={'textAlign': 'center'}),
+        dcc.Graph(
+            id='Top Publications by Keyword'
+        )
+    ],
+    style={'width': '49%', 'display': 'inline-block', 'vertical-align': 'middle'}
+)
 
-widget3 = html.Div([
-    dcc.Graph(
-        id='Top University by Keyword'
-    )
-])
+topUniversityWidget = html.Div(
+    [
+        html.H3(children='Top University per Keyword', style={'textAlign': 'center'}),
+        dcc.Graph(
+            id='Top University by Keyword'
+        )
+    ],
+    style={'width': '49%', 'display': 'inline-block', 'vertical-align': 'middle'}
+)
 
-widget4 = html.Div([
-    dcc.Graph(
-        id='Top Keywords',
-        figure=keywordfig
-    )
+topTenKeywordsWidget = html.Div(
+    [
+        html.H3(children='Top Ten Keywords', style={'textAlign': 'center'}),
+        dcc.Graph(
+            id='Top Keywords',
+            figure=keywordfig
+        )
+    ],
+    style={'width': '49%', 'display': 'inline-block', 'vertical-align': 'middle'}
+)
 
+keywordGroup = html.Div([
+    html.P(children='Please the dropdown list to select interested keywords'),
+    keywordDropdown,
+    # html.Hr(style={'border': '1px solid'}),
+    keywordCountWidget,
+    topPublicationWidget,
+    # html.Hr(style={'border': '1px solid'}),
+    topUniversityWidget,
+    topTenKeywordsWidget
 ])
 
 # Main layout
-app.layout = html.Div([
-    html.H1(children='This is the Main tittle'),
-    widget1,
-    widget2,
-    widget3,
-    widget4,
-    facultyWidget,
-    publicationWidget
-])
+app.layout = html.Div(
+    [
+        html.H1(children='Research Interest Study', style={'textAlign': 'center'}),
+        keywordGroup,
+        facultyWidget,
+        publicationWidget
+    ],
+    id='mainDiv',
+    style={'margin': 'auto', 'width': '85%', 'fontFamily': 'Arial, Helvetica, sans-serif'}
+)
 
-# widget1 line chart
 # Callback section
+# keywordCountWidget
 @app.callback(
     Output('keyword count line chart', 'figure'),
     Input('keyword selection', 'value'),
@@ -133,7 +197,7 @@ def updateKeywordCountLineChart(dropDownValue, rangeSliderValue):
 )
 def getFacultyInformation(queryName, queryPosition, queryEmail, queryPhone, queryUniversityName):
     queryResult = mysqlDriver.getFaculty(queryName, queryPosition, queryEmail, queryPhone, queryUniversityName)
-    data = pd.DataFrame(data=queryResult, columns=['Name', 'Position', 'Research Interest', 'Email', 'Phone', 'Photo URL', 'University']).to_dict('records')
+    data = pd.DataFrame(data=queryResult, columns=['Name', 'Position', 'Research Interest', 'Email', 'Phone', 'Photo URL', 'University']).reset_index().to_dict('records')
     tooltip_data = [{
             column: {
                 'value': '**Photo:**\n\n![](' + row['Photo URL']
@@ -160,6 +224,7 @@ def updateFaculty(n_clicks, insertName, insertPosition, insertEmail, insertPhone
     response = mysqlDriver.insertFaculty(insertName, insertPosition, insertEmail, insertPhone, insertUniversityName, insertResearchInterest, insertPhotoURL)
     return response
 
+# Publication Widget
 @app.callback(
     Output('publication table', 'data'),
     Input('publication title', 'value'),
@@ -169,7 +234,7 @@ def updateFaculty(n_clicks, insertName, insertPosition, insertEmail, insertPhone
 )
 def getPublicationInformation(queryTitle, queryVenue, queryYear, queryNumOfCitations):
     queryResult = mysqlDriver.getPublication(queryTitle, queryVenue, queryYear, queryNumOfCitations)
-    data = pd.DataFrame(data=queryResult, columns=['Title', 'Venue', 'Year', 'Number of Citations']).to_dict('records')
+    data = pd.DataFrame(data=queryResult, columns=['Title', 'Venue', 'Year', 'Number of Citations']).reset_index().to_dict('records')
     return data
 
 @app.callback(
@@ -186,7 +251,7 @@ def updatePublication(n_clicks, title, venue, year, numOfCitations):
     response = mysqlDriver.deletePublication(title, venue, year, numOfCitations)
     return response
 
-# widget2 scatter plot
+# Top publication widget scatter plot
 @app.callback(
     Output('Top Publications by Keyword', 'figure'),
     Input('keyword selection', 'value'),
@@ -199,7 +264,7 @@ def updateTop15PublicationsByKeyword(dropDownValue):
     fig = px.scatter(queryResult, x='year', y='numCitations', log_y = [1000,20000],color='title', hover_name='title', hover_data=['title', 'numCitations', 'year'])
     return fig
 
-# widget3 treemap
+# Top university widget treemap
 @app.callback(
     Output('Top University by Keyword', 'figure'),
     Input('keyword selection', 'value'),
