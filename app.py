@@ -12,21 +12,18 @@ mysqlDriver = MysqlDriver()
 mongoDriver = mongodb_utils()
 neo4jDriver = neo4j_utils()
 
-# tableResult = mysqlDriver.select('select * from faculty limit 50')
-# print(pd.DataFrame(tableResult).to_dict('records'))
 completeKeywordSet = mysqlDriver.query('select name from keyword')
-# print(completeKeywordSet)
-# top keywords fig
 queryResult = neo4jDriver.top_keywords()
 keywordfig = px.histogram(queryResult, x="name", y="keyword_count", color = "name", labels={"keyword_count":"count"}, title="Top 10 Keywords",hover_name="name", hover_data=["name","keyword_count"])
 
-widget1 = html.Div([
-    dcc.Dropdown(
-        id='keyword selection',
-        options=[row[0] for row in completeKeywordSet],
-        value=['machine learning', 'simulation', 'neural networks'],
-        multi=True,
-    ),
+keywordDropdown = dcc.Dropdown(
+    id='keyword selection',
+    options=[row[0] for row in completeKeywordSet],
+    value=['machine learning', 'simulation', 'neural networks'],
+    multi=True,
+)
+
+keywordCountWidget = html.Div([
     dcc.Graph(id='keyword count line chart'),
     dcc.RangeSlider(
         min=1900,
@@ -73,19 +70,19 @@ publicationWidget = html.Div([
     html.Div(id='delete publication state')
 ])
 
-widget2 = html.Div([
+topPublicationWidget = html.Div([
     dcc.Graph(
         id='Top Publications by Keyword'
     )
 ])
 
-widget3 = html.Div([
+topUniversityWidget = html.Div([
     dcc.Graph(
         id='Top University by Keyword'
     )
 ])
 
-widget4 = html.Div([
+topTenKeywordsWidget = html.Div([
     dcc.Graph(
         id='Top Keywords',
         figure=keywordfig
@@ -93,19 +90,24 @@ widget4 = html.Div([
 
 ])
 
+keywordGroup = html.Div([
+    keywordDropdown,
+    keywordCountWidget,
+    topPublicationWidget,
+    topUniversityWidget,
+    topTenKeywordsWidget
+])
+
 # Main layout
 app.layout = html.Div([
     html.H1(children='This is the Main tittle'),
-    widget1,
-    widget2,
-    widget3,
-    widget4,
+    keywordGroup,
     facultyWidget,
     publicationWidget
 ])
 
-# widget1 line chart
 # Callback section
+# keywordCountWidget
 @app.callback(
     Output('keyword count line chart', 'figure'),
     Input('keyword selection', 'value'),
@@ -160,6 +162,7 @@ def updateFaculty(n_clicks, insertName, insertPosition, insertEmail, insertPhone
     response = mysqlDriver.insertFaculty(insertName, insertPosition, insertEmail, insertPhone, insertUniversityName, insertResearchInterest, insertPhotoURL)
     return response
 
+# Publication Widget
 @app.callback(
     Output('publication table', 'data'),
     Input('publication title', 'value'),
@@ -186,7 +189,7 @@ def updatePublication(n_clicks, title, venue, year, numOfCitations):
     response = mysqlDriver.deletePublication(title, venue, year, numOfCitations)
     return response
 
-# widget2 scatter plot
+# Top publication widget scatter plot
 @app.callback(
     Output('Top Publications by Keyword', 'figure'),
     Input('keyword selection', 'value'),
@@ -199,7 +202,7 @@ def updateTop25PublicationsByKeyword(dropDownValue):
     fig = px.scatter(queryResult, x='year', y='numCitations', log_y = [1000,20000],color='title', hover_name='title', hover_data=['title', 'numCitations', 'year'])
     return fig
 
-# widget3 treemap
+# Top university widget treemap
 @app.callback(
     Output('Top University by Keyword', 'figure'),
     Input('keyword selection', 'value'),
