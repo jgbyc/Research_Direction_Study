@@ -36,12 +36,13 @@ class mongodb_utils:
         self.close()
         return df
     
-    def top_pub(self, keyword):
+    def top_pub(self, keywords, years):
         self.connect()
         result = self.publications.aggregate([
             {
                 "$match": {
-                    "keywords.name": {"$in": keyword}
+                    "keywords.name": {"$in": keywords},
+                    "year":{"$in": years}
                 }
             },
             {

@@ -268,24 +268,30 @@ def updatePublication(n_clicks, title, venue, year, numOfCitations):
 @app.callback(
     Output('Top Publications by Keyword', 'figure'),
     Input('keyword selection', 'value'),
+    Input('year slider', 'value')
 )
-def updateTop15PublicationsByKeyword(dropDownValue):
+def updateTop15PublicationsByKeyword(dropDownValue, rangeSliderValue):
     if not dropDownValue:
         fig = px.line(pd.DataFrame(data=[]))
         return fig
-    queryResult = mongoDriver.top_pub(dropDownValue)
-    fig = px.scatter(
-        queryResult, 
-        x='year', 
-        y='numCitations', 
-        size="numCitations",
-        log_y = [1000,20000],
-        color=queryResult['title'].map(customwrap), 
-        hover_name='title', 
-        hover_data=['title', 'numCitations', 'year']#, 
-        # width=1000, 
-        # height=500
-        )
+    year_start, year_end = rangeSliderValue
+    years = [x for x in range(int(year_start), int(year_end)+1)]
+    queryResult = mongoDriver.top_pub(dropDownValue, years)
+    if len(queryResult) > 0:
+        fig = px.scatter(
+            queryResult,
+            x='year', 
+            y='numCitations', 
+            size="numCitations",
+            log_y = [1000,20000],
+            color=queryResult['title'].map(customwrap), 
+            hover_name='title', 
+            hover_data=['title', 'numCitations', 'year']#, 
+            # width=1000, 
+            # height=500
+            )
+    else:
+        fig = px.line(pd.DataFrame(data=[]))
     return fig
 
 # Top university widget treemap
