@@ -21,7 +21,7 @@ keywordfig = px.bar(
     labels={"keyword_count":"count"}, 
     color="keyword_count", 
     color_continuous_scale="geyser", 
-    title="Top 10 Keywords", 
+    # title="Top 10 Keywords", 
     hover_name="name", 
     hover_data=["name","keyword_count"]
     )
@@ -196,6 +196,12 @@ def updateKeywordCountLineChart(dropDownValue, rangeSliderValue):
     # print(pd.DataFrame(data=queryResult, columns=['count', 'year', 'name']))
     fig = px.line(pd.DataFrame(data=queryResult, columns=['count', 'year', 'name']).astype({'year': 'int'}),
                   x='year', y='count', color='name')
+    fig.update_layout(legend=dict(
+                    yanchor="top",
+                    y=0.99,
+                    xanchor="left",
+                    x=0.01
+                ))
     return fig
 
 # facultyWidget
@@ -292,6 +298,7 @@ def updateTop15PublicationsByKeyword(dropDownValue, rangeSliderValue):
             )
     else:
         fig = px.line(pd.DataFrame(data=[]))
+    fig.update_layout(legend_title_text='title')
     return fig
 
 # Top university widget treemap
