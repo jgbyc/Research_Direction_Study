@@ -18,7 +18,7 @@ completeKeywordSet = mysqlDriver.query('select name from keyword')
 # print(completeKeywordSet)
 # top keywords fig
 queryResult = neo4jDriver.top_keywords()
-keywordfig = px.histogram(queryResult, x="name", y="keyword_count", color = "name", labels={"keyword_count":"count"}, title="Top 10 Keywords",hover_name="name", hover_data=["name","keyword_count"])
+keywordfig = px.bar(queryResult, x="name", y="keyword_count", labels={"keyword_count":"count"}, color="keyword_count", color_continuous_scale="geyser", title="Top 10 Keywords", hover_name="name", hover_data=["name","keyword_count"])
 
 widget1 = html.Div([
     dcc.Dropdown(
@@ -191,7 +191,7 @@ def updatePublication(n_clicks, title, venue, year, numOfCitations):
     Output('Top Publications by Keyword', 'figure'),
     Input('keyword selection', 'value'),
 )
-def updateTop25PublicationsByKeyword(dropDownValue):
+def updateTop15PublicationsByKeyword(dropDownValue):
     if not dropDownValue:
         fig = px.line(pd.DataFrame(data=[]))
         return fig
@@ -204,12 +204,14 @@ def updateTop25PublicationsByKeyword(dropDownValue):
     Output('Top University by Keyword', 'figure'),
     Input('keyword selection', 'value'),
 )
-def updateTop10UniveristyByKeyword(dropDownValue):
+def updateUniveristyFacultyByKeyword(dropDownValue):
     if not dropDownValue:
         fig = px.line(pd.DataFrame(data=[]))
         return fig
-    queryResult = neo4jDriver.top_university(dropDownValue)
-    fig = px.treemap(queryResult, path=["University"], values='Publication_count',color='University', width=1000, height=700, hover_name="University", hover_data=["University","Publication_count"])
+    # queryResult = neo4jDriver.top_university(dropDownValue)
+    # fig = px.treemap(queryResult, path=['University'], values='Publication_count', color = 'Publication_count', color_continuous_scale='geyser', width=1000, height=700, hover_name='University', hover_data=['University','Publication_count'])
+    queryResult = neo4jDriver.top_faculty(dropDownValue)
+    fig = px.treemap(queryResult, path=[px.Constant('University'),'University','Faculty_name'], values='Publication_count', color = 'Publication_count', color_continuous_scale='geyser', width=1000, height=700)# hover_name='University', hover_data=['Publication_count'])
     return fig
 
 

@@ -18,21 +18,6 @@ class mongodb_utils:
 
     def close(self):
         self.client.close()
-    
-    def all_faculty(self):
-        result = self.faculty.distinct("name")
-        df = pd.DataFrame(list(result))
-        return df
-
-    def all_publications(self):
-        result = self.publications.distinct("title")
-        df = pd.DataFrame(list(result))
-        return df
-
-    def all_univerisity(self):
-        result = self.faculty.distinct("affiliation.name")
-        df = pd.DataFrame(list(result))
-        return df
 
     def top_keywords(self):
         self.connect()
