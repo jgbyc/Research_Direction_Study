@@ -5,7 +5,7 @@ import pandas as pd
 from mysql_utils import MysqlDriver
 from mongodb_utils import mongodb_utils
 from neo4j_utils import neo4j_utils
-
+import textwrap
 app = Dash(__name__)
 
 mysqlDriver = MysqlDriver()
@@ -14,7 +14,17 @@ neo4jDriver = neo4j_utils()
 
 completeKeywordSet = mysqlDriver.query('select name from keyword')
 queryResult = neo4jDriver.top_keywords()
-keywordfig = px.bar(queryResult, x="name", y="keyword_count", labels={"keyword_count":"count"}, color="keyword_count", color_continuous_scale="geyser", title="Top 10 Keywords", hover_name="name", hover_data=["name","keyword_count"])
+keywordfig = px.bar(
+    queryResult, 
+    x="name", 
+    y="keyword_count", 
+    labels={"keyword_count":"count"}, 
+    color="keyword_count", 
+    color_continuous_scale="geyser", 
+    title="Top 10 Keywords", 
+    hover_name="name", 
+    hover_data=["name","keyword_count"]
+    )
 
 keywordDropdown = dcc.Dropdown(
     id='keyword selection',
@@ -121,7 +131,7 @@ topPublicationWidget = html.Div(
             id='Top Publications by Keyword'
         )
     ],
-    style={'width': '49%', 'display': 'inline-block', 'vertical-align': 'middle'}
+    style={'width': '49%', 'display': 'inline-block', 'vertical-align': 'top'}
 )
 
 topUniversityWidget = html.Div(
@@ -131,7 +141,7 @@ topUniversityWidget = html.Div(
             id='Top University by Keyword'
         )
     ],
-    style={'width': '49%', 'display': 'inline-block', 'vertical-align': 'middle'}
+    style={'width': '100%', 'display': 'inline-block', 'vertical-align': 'middle'}
 )
 
 topTenKeywordsWidget = html.Div(
@@ -142,7 +152,7 @@ topTenKeywordsWidget = html.Div(
             figure=keywordfig
         )
     ],
-    style={'width': '49%', 'display': 'inline-block', 'vertical-align': 'middle'}
+    style={'width': '100%', 'display': 'inline-block', 'vertical-align': 'middle'}
 )
 
 keywordGroup = html.Div([
@@ -155,6 +165,9 @@ keywordGroup = html.Div([
     topUniversityWidget,
     topTenKeywordsWidget
 ])
+# textwrap function
+def customwrap(s,width=30):
+    return "<br>".join(textwrap.wrap(s, width=width))
 
 # Main layout
 app.layout = html.Div(
@@ -261,7 +274,17 @@ def updateTop15PublicationsByKeyword(dropDownValue):
         fig = px.line(pd.DataFrame(data=[]))
         return fig
     queryResult = mongoDriver.top_pub(dropDownValue)
-    fig = px.scatter(queryResult, x='year', y='numCitations', log_y = [1000,20000],color='title', hover_name='title', hover_data=['title', 'numCitations', 'year'])
+    fig = px.scatter(
+        queryResult, 
+        x='year', 
+        y='numCitations', 
+        log_y = [1000,20000],
+        color=queryResult['title'].map(customwrap), 
+        hover_name='title', 
+        hover_data=['title', 'numCitations', 'year']#, 
+        # width=1000, 
+        # height=500
+        )
     return fig
 
 # Top university widget treemap
@@ -273,10 +296,16 @@ def updateUniveristyFacultyByKeyword(dropDownValue):
     if not dropDownValue:
         fig = px.line(pd.DataFrame(data=[]))
         return fig
-    # queryResult = neo4jDriver.top_university(dropDownValue)
-    # fig = px.treemap(queryResult, path=['University'], values='Publication_count', color = 'Publication_count', color_continuous_scale='geyser', width=1000, height=700, hover_name='University', hover_data=['University','Publication_count'])
     queryResult = neo4jDriver.top_faculty(dropDownValue)
-    fig = px.treemap(queryResult, path=[px.Constant('University'),'University','Faculty_name'], values='Publication_count', color = 'Publication_count', color_continuous_scale='geyser', width=1000, height=700)# hover_name='University', hover_data=['Publication_count'])
+    fig = px.treemap(
+        queryResult, 
+        path=[px.Constant('University'),'University','Faculty_name'], 
+        values='Publication_count', 
+        color = 'Publication_count', 
+        color_continuous_scale='geyser'#, 
+        # width=1000, 
+        # height=700
+        )# hover_name='University', hover_data=['Publication_count'])
     return fig
 
 
