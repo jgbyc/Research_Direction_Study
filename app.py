@@ -278,6 +278,7 @@ def updateTop15PublicationsByKeyword(dropDownValue):
         queryResult, 
         x='year', 
         y='numCitations', 
+        size="numCitations",
         log_y = [1000,20000],
         color=queryResult['title'].map(customwrap), 
         hover_name='title', 
