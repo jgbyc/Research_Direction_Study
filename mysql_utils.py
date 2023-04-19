@@ -19,16 +19,18 @@ class MysqlDriver:
         db.close()
         return data
     
-    def update(self, statement):
-        db = mysql.connector.connect(**self.__config)
-        cursor = db.cursor()
-        try:
-            cursor.execute(statement)
-            db.commit()
-        except:
-            db.rollback()
-        cursor.close()
-        db.close()
+    def getYearSliderRange(self, keywordList):
+        keywordSet = '('
+        for keyword in keywordList:
+            keywordSet += '\'' + keyword +'\'' +','
+        keywordSet = keywordSet[:-1] + ')'
+        sql = f'''
+        SELECT MIN(year), MAX(year)
+        FROM countkeyword
+        WHERE name in {keywordSet};
+        '''
+        queryResult = self.query(sql)
+        return int(queryResult[0][0]), int(queryResult[0][1])
 
     def getKeywordCountByYear(self, keywordList, yearRange):
         keywordSet = '('
@@ -40,7 +42,7 @@ class MysqlDriver:
         FROM countkeyword
         WHERE year >= {yearRange[0]} AND year <= {yearRange[1]} AND name IN {keywordSet}
         GROUP BY name, year
-        ORDER BY name, year
+        ORDER BY name, year;
         '''
         return self.query(sql)
         

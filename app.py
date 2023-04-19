@@ -24,7 +24,7 @@ keywordfig = px.bar(
     # title="Top 10 Keywords", 
     hover_name="name", 
     hover_data=["name","keyword_count"]
-    )
+    ).update_layout(paper_bgcolor='rgb(203, 213, 232)', plot_bgcolor='rgb(203, 213, 232)')
 
 keywordDropdown = dcc.Dropdown(
     id='keyword selection',
@@ -33,36 +33,34 @@ keywordDropdown = dcc.Dropdown(
     multi=True,
 )
 
+yearSlider = dcc.RangeSlider(
+    step=1,
+    tooltip={"placement": "bottom", "always_visible": False},
+    id='year slider',
+    allowCross=False
+)
+
 keywordCountWidget = html.Div(
     [
         html.H3(children='Keyword Count Trend', style={'textAlign': 'center'}),
-        dcc.Graph(id='keyword count line chart'),
-        dcc.RangeSlider(
-            min=1900,
-            max=2022,
-            step=1,
-            marks={i: '{}'.format(i) for i in range(1900, 2022, 10)},
-            tooltip={"placement": "bottom", "always_visible": False},
-            id='year slider',
-            value=[1900, 2022],
-            allowCross=False
-        )
+        dcc.Graph(id='keyword count line chart')
     ],
-    style={'width': '49%', 'display': 'inline-block', 'vertical-align': 'middle'}
+    style={'width': '50%', 'display': 'inline-block', 'vertical-align': 'middle'}
 )
 
 facultyWidget = html.Div([
     html.H3(children='Faculty\' Information', style={'textAlign': 'center'}),
     html.P(children='Please use this wideget to search and insert the faculty\'s information.'),
 
-    dcc.Input(id="faculty name", type="text", placeholder="Input Name", debounce=True),
-    dcc.Input(id="faculty position", type="text", placeholder="Input Postion", debounce=True),
-    dcc.Input(id="faculty email", type="email", placeholder="Input Email", debounce=True),
-    dcc.Input(id="faculty phone", type="text", placeholder="Input Phone", debounce=True),
-    dcc.Input(id="faculty university name", type="text", placeholder="Input university name", debounce=True),
-
-    dcc.Input(id="faculty research interest", type="text", placeholder="Input Research Interest"),
-    dcc.Input(id="faculty photo_url", type="url", placeholder="Input Photo Url"),
+    html.Div([
+        dcc.Input(id="faculty name", type="text", placeholder="Input Name", debounce=True),
+        dcc.Input(id="faculty position", type="text", placeholder="Input Postion", debounce=True),
+        dcc.Input(id="faculty email", type="email", placeholder="Input Email", debounce=True),
+        dcc.Input(id="faculty phone", type="text", placeholder="Input Phone", debounce=True),
+        dcc.Input(id="faculty university name", type="text", placeholder="Input university name", debounce=True),
+        dcc.Input(id="faculty research interest", type="text", placeholder="Input Research Interest"),
+        dcc.Input(id="faculty photo_url", type="url", placeholder="Input Photo Url"),
+    ], className='inputBox'),
 
     dash_table.DataTable(
         id='faculty table', page_size=6,
@@ -86,7 +84,7 @@ facultyWidget = html.Div([
             'fontWeight': 'bold'
         }
         ),
-    html.Button(id='insert faculty button', n_clicks=0, children='Insert New Faculty'),
+    html.Button(id='insert faculty button', n_clicks=0, children='Insert New Faculty', className='button'),
     html.Div(id='insert new faculty state')
 ])
 
@@ -94,10 +92,13 @@ publicationWidget = html.Div([
     html.H3(children='Publication\' Information', style={'textAlign': 'center'}),
     html.P(children='Please use this wideget to search and insert the publication\'s information.'),
 
-    dcc.Input(id="publication title", type="text", placeholder="Input Title", debounce=True),
-    dcc.Input(id="publication venue", type="text", placeholder="Input Venue", debounce=True),
-    dcc.Input(id="publication year", type="text", placeholder="Input Year", debounce=True),
-    dcc.Input(id="publication num_citations", type="number", placeholder="Input Number of Citations", debounce=True),
+    html.Div([
+        dcc.Input(id="publication title", type="text", placeholder="Input Title", debounce=True),
+        dcc.Input(id="publication venue", type="text", placeholder="Input Venue", debounce=True),
+        dcc.Input(id="publication year", type="text", placeholder="Input Year", debounce=True),
+        dcc.Input(id="publication num_citations", type="number", placeholder="Input Number of Citations", debounce=True)
+    ], className='inputBox'),
+
     dash_table.DataTable(
         id='publication table',
         columns=[{'name': '', 'id': 'index'}, {'name': 'Title', 'id': 'Title'}, {'name': 'Venue', 'id': 'Venue'}, {'name': 'Number of Citations', 'id': 'Number of Citations'}],
@@ -120,7 +121,7 @@ publicationWidget = html.Div([
             'fontWeight': 'bold'
         }       
     ),
-    html.Button(id='delete publication button', n_clicks=0, children='Delete listed publications'),
+    html.Button(id='delete publication button', n_clicks=0, children='Delete listed publications', className='button'),
     html.Div(id='delete publication state')
 ])
 
@@ -131,7 +132,7 @@ topPublicationWidget = html.Div(
             id='Top Publications by Keyword'
         )
     ],
-    style={'width': '49%', 'display': 'inline-block', 'vertical-align': 'top'}
+    style={'width': '50%', 'display': 'inline-block', 'vertical-align': 'top'}
 )
 
 topUniversityWidget = html.Div(
@@ -161,6 +162,7 @@ keywordGroup = html.Div([
     # html.Hr(style={'border': '1px solid'}),
     keywordCountWidget,
     topPublicationWidget,
+    yearSlider,
     # html.Hr(style={'border': '1px solid'}),
     topUniversityWidget,
     topTenKeywordsWidget
@@ -178,10 +180,25 @@ app.layout = html.Div(
         publicationWidget
     ],
     id='mainDiv',
-    style={'margin': 'auto', 'width': '85%', 'fontFamily': 'Arial, Helvetica, sans-serif'}
+    style={'margin': 'auto', 'width': '85%'}
 )
 
 # Callback section
+# Update year slider
+@app.callback(
+    Output('year slider', 'min'),
+    Output('year slider', 'max'),
+    Output('year slider', 'marks'),
+    Output('year slider', 'value'),
+    Input('keyword selection', 'value')
+)
+def updateYearSlider(dropDownValue):
+    if not dropDownValue:
+        return 1970, 2020, {i: '{}'.format(i) for i in range(1970, 2020, 5)}, [1970, 2020]
+    queryResult = mysqlDriver.getYearSliderRange(dropDownValue)
+    marks={i: '{}'.format(i) for i in range(queryResult[0], queryResult[1], 5)}
+    return queryResult[0], queryResult[1], marks, [queryResult[0], queryResult[1]]
+
 # keywordCountWidget
 @app.callback(
     Output('keyword count line chart', 'figure'),
@@ -195,13 +212,13 @@ def updateKeywordCountLineChart(dropDownValue, rangeSliderValue):
     queryResult = mysqlDriver.getKeywordCountByYear(dropDownValue, rangeSliderValue)
     # print(pd.DataFrame(data=queryResult, columns=['count', 'year', 'name']))
     fig = px.line(pd.DataFrame(data=queryResult, columns=['count', 'year', 'name']).astype({'year': 'int'}),
-                  x='year', y='count', color='name')
+                  x='year', y='count', color='name', color_discrete_sequence=px.colors.qualitative.Pastel)
     fig.update_layout(legend=dict(
                     yanchor="top",
                     y=0.99,
                     xanchor="left",
-                    x=0.01
-                ))
+                    x=0.01,
+                ), legend_title_text='', paper_bgcolor='rgb(203, 213, 232)', plot_bgcolor='rgb(203, 213, 232)')
     return fig
 
 # facultyWidget
@@ -292,13 +309,14 @@ def updateTop15PublicationsByKeyword(dropDownValue, rangeSliderValue):
             log_y = [1000,20000],
             color=queryResult['title'].map(customwrap), 
             hover_name='title', 
-            hover_data=['title', 'numCitations', 'year']#, 
+            hover_data=['title', 'numCitations', 'year'],
+            color_discrete_sequence=px.colors.qualitative.Pastel
             # width=1000, 
             # height=500
             )
     else:
         fig = px.line(pd.DataFrame(data=[]))
-    fig.update_layout(legend_title_text='title')
+    fig.update_layout(legend_title_text='title', paper_bgcolor='rgb(203, 213, 232)', plot_bgcolor='rgb(203, 213, 232)')
     return fig
 
 # Top university widget treemap
@@ -320,6 +338,7 @@ def updateUniveristyFacultyByKeyword(dropDownValue):
         # width=1000, 
         # height=700
         )# hover_name='University', hover_data=['Publication_count'])
+    fig.update_layout(paper_bgcolor='rgb(203, 213, 232)', plot_bgcolor='rgb(203, 213, 232)')
     return fig
 
 
