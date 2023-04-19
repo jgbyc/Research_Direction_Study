@@ -1,6 +1,5 @@
 from dash import Dash, html, dash_table, dcc, callback, Output, Input, State
 import plotly.express as px
-import plotly.graph_objects as go
 import pandas as pd
 from mysql_utils import MysqlDriver
 from mongodb_utils import mongodb_utils
@@ -8,6 +7,11 @@ from neo4j_utils import neo4j_utils
 import textwrap
 app = Dash(__name__)
 
+colors = {
+    'papper':'rgb(213, 213, 232)',
+    'plot':'rgb(203, 213, 232)',
+    'text':'#7FDBFF'
+}
 mysqlDriver = MysqlDriver()
 mongoDriver = mongodb_utils()
 neo4jDriver = neo4j_utils()
@@ -24,7 +28,7 @@ keywordfig = px.bar(
     # title="Top 10 Keywords", 
     hover_name="name", 
     hover_data=["name","keyword_count"]
-    ).update_layout(paper_bgcolor='rgb(203, 213, 232)', plot_bgcolor='rgb(203, 213, 232)')
+    ).update_layout(paper_bgcolor=colors['papper'], plot_bgcolor=colors['plot'])
 
 keywordDropdown = dcc.Dropdown(
     id='keyword selection',
@@ -137,7 +141,7 @@ topPublicationWidget = html.Div(
 
 topUniversityWidget = html.Div(
     [
-        html.H3(children='Top University per Keyword', style={'textAlign': 'center'}),
+        html.H3(children='Top University/Faculty per Keyword', style={'textAlign': 'center'}),
         dcc.Graph(
             id='Top University by Keyword'
         )
@@ -212,13 +216,26 @@ def updateKeywordCountLineChart(dropDownValue, rangeSliderValue):
     queryResult = mysqlDriver.getKeywordCountByYear(dropDownValue, rangeSliderValue)
     # print(pd.DataFrame(data=queryResult, columns=['count', 'year', 'name']))
     fig = px.line(pd.DataFrame(data=queryResult, columns=['count', 'year', 'name']).astype({'year': 'int'}),
-                  x='year', y='count', color='name', color_discrete_sequence=px.colors.qualitative.Pastel)
-    fig.update_layout(legend=dict(
+                  x='year', y='count', color='name', color_discrete_sequence=px.colors.qualitative.D3)
+    fig.update_layout(
+                legend=dict(
                     yanchor="top",
                     y=0.99,
                     xanchor="left",
                     x=0.01,
-                ), legend_title_text='', paper_bgcolor='rgb(203, 213, 232)', plot_bgcolor='rgb(203, 213, 232)')
+                    bordercolor="Black",
+                    borderwidth=2
+                ), 
+                legend_title_text='', 
+                paper_bgcolor=colors['papper'], 
+                plot_bgcolor=colors['plot'],
+                title={
+                    'text': 'Keyword Count Trend',
+                    'font_size':20,
+                    'x':0.5,
+                    'xanchor': 'center',
+                    'yanchor': 'top'}
+        )
     return fig
 
 # facultyWidget
@@ -305,18 +322,27 @@ def updateTop15PublicationsByKeyword(dropDownValue, rangeSliderValue):
             queryResult,
             x='year', 
             y='numCitations', 
-            size="numCitations",
-            log_y = [1000,20000],
+            size='numCitations',
+            labels={'color':'title'},
+            log_y=True,
             color=queryResult['title'].map(customwrap), 
             hover_name='title', 
-            hover_data=['title', 'numCitations', 'year'],
-            color_discrete_sequence=px.colors.qualitative.Pastel
-            # width=1000, 
-            # height=500
+            hover_data={'title':False,'numCitations':True, 'year':True},
+            color_discrete_sequence=px.colors.qualitative.D3
             )
     else:
         fig = px.line(pd.DataFrame(data=[]))
-    fig.update_layout(legend_title_text='title', paper_bgcolor='rgb(203, 213, 232)', plot_bgcolor='rgb(203, 213, 232)')
+    fig.update_layout(
+            legend_title_text='title', 
+            paper_bgcolor=colors['papper'], 
+            plot_bgcolor=colors['plot'],
+            title={
+                'text': 'Top Publication per Keyword',
+                'font_size':20,
+                'x':0.5,
+                'xanchor': 'center',
+                'yanchor': 'top'}
+            )
     return fig
 
 # Top university widget treemap
@@ -333,12 +359,13 @@ def updateUniveristyFacultyByKeyword(dropDownValue):
         queryResult, 
         path=[px.Constant('University'),'University','Faculty_name'], 
         values='Publication_count', 
-        color = 'Publication_count', 
-        color_continuous_scale='geyser'#, 
+        color='Publication_count', 
+        color_continuous_scale='geyser', 
         # width=1000, 
-        # height=700
+        height=700
         )# hover_name='University', hover_data=['Publication_count'])
-    fig.update_layout(paper_bgcolor='rgb(203, 213, 232)', plot_bgcolor='rgb(203, 213, 232)')
+    fig.update_layout(paper_bgcolor=colors['papper'], plot_bgcolor=colors['plot'])
+    fig.update_traces(textinfo='label+value')
     return fig
 
 
