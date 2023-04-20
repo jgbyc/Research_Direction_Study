@@ -48,7 +48,7 @@ class MysqlDriver:
         
     def getFaculty(self, queryName, queryPosition, queryEmail, queryPhone, queryUniversityName):
         sql = f'''
-        SELECT faculty.name, faculty.position, faculty.research_interest, faculty.email, faculty.phone, faculty.photo_url, university.name
+        SELECT faculty.id, faculty.name, faculty.position, faculty.research_interest, faculty.email, faculty.phone, faculty.photo_url, university.name
         FROM faculty INNER JOIN university
         ON faculty.university_id = university.id
         WHERE faculty.name LIKE '%{self.xstr(queryName)}%' AND faculty.position LIKE '%{self.xstr(queryPosition)}%'
@@ -78,20 +78,40 @@ class MysqlDriver:
             db.close()
             return response
     
-    def getPublication(self, queryTitle, queryVenue, queryYear, queryNumOfCitations):
+    def getPublication(self, queryTitle, queryVenue, queryYear, queryNumOfCitations, facultyIDList):
+        if len(facultyIDList) == 0:
+            sql = f'''
+            SELECT publication.id, publication.title, publication.venue, publication.year, publication.num_citations
+            FROM publication
+            WHERE publication.title LIKE '%{self.xstr(queryTitle)}%' AND publication.venue LIKE '%{self.xstr(queryVenue)}%'
+            AND publication.year LIKE '%{self.xstr(queryYear)}%' AND publication.num_citations LIKE '%{self.xstr(queryNumOfCitations)}%'
+            LIMIT 100;
+            '''
+            return self.query(sql)
+        
+        facultyIDSet = ''
+        for each in facultyIDList:
+            facultyIDSet += str(each) + ','
+        facultyIDSet = '(' + facultyIDSet[:-1] + ')'
         sql = f'''
-        SELECT publication.title, publication.venue, publication.year, publication.num_citations
-        FROM publication WHERE publication.title LIKE '%{self.xstr(queryTitle)}%' AND publication.venue LIKE '%{self.xstr(queryVenue)}%'
+        SELECT publication.id, publication.title, publication.venue, publication.year, publication.num_citations
+        FROM publication INNER JOIN faculty_publication
+        ON publication.id = faculty_publication.publication_id
+        WHERE faculty_publication.faculty_id IN {facultyIDSet}
+        AND publication.title LIKE '%{self.xstr(queryTitle)}%' AND publication.venue LIKE '%{self.xstr(queryVenue)}%'
         AND publication.year LIKE '%{self.xstr(queryYear)}%' AND publication.num_citations LIKE '%{self.xstr(queryNumOfCitations)}%'
         LIMIT 100;
         '''
         return self.query(sql)
     
-    def deletePublication(self, title, venue, year, numOfCitations):
+    def deletePublication(self, publicationIDList):
+        publicationIDSet = ''
+        for each in publicationIDList:
+            publicationIDSet += str(each) + ','
+        publicationIDSet = '(' + publicationIDSet[:-1] + ')'
         sql = f'''
         DELETE FROM publication
-        WHERE publication.title LIKE '%{self.xstr(title)}%' AND publication.venue LIKE '%{self.xstr(venue)}%'
-        AND publication.year LIKE '%{self.xstr(year)}%' AND publication.num_citations LIKE '%{self.xstr(numOfCitations)}%';
+        WHERE publication.id IN {publicationIDSet};
         '''
         db = mysql.connector.connect(**self.__config)
         cursor = db.cursor()

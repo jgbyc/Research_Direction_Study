@@ -8,7 +8,7 @@ import textwrap
 app = Dash(__name__)
 
 colors = {
-    'papper':'rgb(213, 213, 232)',
+    'papper':'rgb(223, 233, 252)',
     'plot':'rgb(203, 213, 232)',
     'text':'#7FDBFF'
 }
@@ -16,7 +16,7 @@ mysqlDriver = MysqlDriver()
 mongoDriver = mongodb_utils()
 neo4jDriver = neo4j_utils()
 
-completeKeywordSet = mysqlDriver.query('select name from keyword')
+completeKeywordSet = mysqlDriver.query('select name from keyword;')
 queryResult = neo4jDriver.top_keywords()
 keywordfig = px.bar(
     queryResult, 
@@ -79,6 +79,7 @@ facultyWidget = html.Div([
         id='faculty table', page_size=6,
         columns=[{'name': '', 'id': 'index'}, {'name': 'Name', 'id': 'Name'}, {'name': 'Position', 'id': 'Position'}, {'name': 'Email', 'id': 'Email'},
                  {'name': 'Phone', 'id': 'Phone'}, {'name': 'University', 'id': 'University'}],
+        row_selectable='multi',
         style_cell={'textAlign': 'left'},
         style_data={
         'color': 'black',
@@ -116,6 +117,7 @@ publicationWidget = html.Div([
         id='publication table',
         columns=[{'name': '', 'id': 'index'}, {'name': 'Title', 'id': 'Title'}, {'name': 'Venue', 'id': 'Venue'}, {'name': 'Number of Citations', 'id': 'Number of Citations'}],
         page_size=6,
+        row_selectable='multi',
         style_cell={'textAlign': 'left'},
         style_data={
         'color': 'black',
@@ -171,7 +173,7 @@ topTenKeywordsWidget = html.Div(
 
 keywordGroup = html.Div([
     topTenKeywordsWidget,
-    html.P(children='Please the dropdown list to select interested keywords'),
+    html.P(children='Please use the dropdown list to select interested keywords'),
     keywordDropdown,
     # html.Hr(style={'border': '1px solid'}),
     keywordCountWidget,
@@ -252,6 +254,7 @@ def updateKeywordCountLineChart(dropDownValue, rangeSliderValue):
 @app.callback(
     Output('faculty table', 'data'),
     Output('faculty table', 'tooltip_data'),
+    Output('faculty table', 'selected_rows'),
     Input('faculty name', 'value'),
     Input('faculty position', 'value'),
     Input('faculty email', 'value'),
@@ -260,7 +263,7 @@ def updateKeywordCountLineChart(dropDownValue, rangeSliderValue):
 )
 def getFacultyInformation(queryName, queryPosition, queryEmail, queryPhone, queryUniversityName):
     queryResult = mysqlDriver.getFaculty(queryName, queryPosition, queryEmail, queryPhone, queryUniversityName)
-    data = pd.DataFrame(data=queryResult, columns=['Name', 'Position', 'Research Interest', 'Email', 'Phone', 'Photo URL', 'University']).reset_index().to_dict('records')
+    data = pd.DataFrame(data=queryResult, columns=['id', 'Name', 'Position', 'Research Interest', 'Email', 'Phone', 'Photo URL', 'University']).reset_index().to_dict('records')
     tooltip_data = [{
             column: {
                 'value': '**Photo:**\n\n![](' + row['Photo URL']
@@ -268,7 +271,7 @@ def getFacultyInformation(queryName, queryPosition, queryEmail, queryPhone, quer
                 'type': 'markdown'
             } for column in row
         } for row in data]
-    return data, tooltip_data
+    return data, tooltip_data, []
 
 @app.callback(
     Output('insert new faculty state', 'children'),
@@ -290,28 +293,40 @@ def updateFaculty(n_clicks, insertName, insertPosition, insertEmail, insertPhone
 # Publication Widget
 @app.callback(
     Output('publication table', 'data'),
+    Output('publication table', 'selected_rows'),
     Input('publication title', 'value'),
     Input('publication venue', 'value'),
     Input('publication year', 'value'),
-    Input('publication num_citations', 'value')
+    Input('publication num_citations', 'value'),
+    Input('faculty table', 'selected_rows'),
+    Input('faculty table', 'data')
 )
-def getPublicationInformation(queryTitle, queryVenue, queryYear, queryNumOfCitations):
-    queryResult = mysqlDriver.getPublication(queryTitle, queryVenue, queryYear, queryNumOfCitations)
-    data = pd.DataFrame(data=queryResult, columns=['Title', 'Venue', 'Year', 'Number of Citations']).reset_index().to_dict('records')
-    return data
+def getPublicationInformation(queryTitle, queryVenue, queryYear, queryNumOfCitations, selectedRows, facultyTableData):
+    facultyIDList = []
+    if selectedRows is not None:
+        for i in selectedRows:
+            facultyIDList.append(facultyTableData[i]['id'])
+    queryResult = mysqlDriver.getPublication(queryTitle, queryVenue, queryYear, queryNumOfCitations, facultyIDList)
+    data = pd.DataFrame(data=queryResult, columns=['id', 'Title', 'Venue', 'Year', 'Number of Citations']).reset_index().to_dict('records')
+    return data, []
 
 @app.callback(
     Output('delete publication state', 'children'),
     Input('delete publication button', 'n_clicks'),
-    State('publication title', 'value'),
-    State('publication venue', 'value'),
-    State('publication year', 'value'),
-    State('publication num_citations', 'value')
+    State('publication table', 'data'),
+    State('publication table', 'selected_rows'),
 )
-def updatePublication(n_clicks, title, venue, year, numOfCitations):
+def updatePublication(n_clicks, publicationData, selectedRows):
     if (n_clicks == 0):
         return ''
-    response = mysqlDriver.deletePublication(title, venue, year, numOfCitations)
+    
+    publicationIDList = []
+    if selectedRows is not None:
+        for i in selectedRows:
+            publicationIDList.append(publicationData[i]['id'])
+    if len(publicationIDList) == 0:
+        return ''
+    response = mysqlDriver.deletePublication(publicationIDList)
     return response
 
 # Top publication widget scatter plot
