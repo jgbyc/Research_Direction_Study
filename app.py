@@ -28,7 +28,16 @@ keywordfig = px.bar(
     # title="Top 10 Keywords", 
     hover_name="name", 
     hover_data=["name","keyword_count"]
-    ).update_layout(paper_bgcolor=colors['papper'], plot_bgcolor=colors['plot'])
+    ).update_layout(
+                paper_bgcolor=colors['papper'], 
+                plot_bgcolor=colors['plot'],
+                title={
+                'text': 'Top Keyword',
+                'font_size':20,
+                'x':0.5,
+                'xanchor': 'center',
+                'yanchor': 'top'}
+                )
 
 keywordDropdown = dcc.Dropdown(
     id='keyword selection',
@@ -46,7 +55,7 @@ yearSlider = dcc.RangeSlider(
 
 keywordCountWidget = html.Div(
     [
-        html.H3(children='Keyword Count Trend', style={'textAlign': 'center'}),
+        # html.H3(children='Keyword Count Trend', style={'textAlign': 'center'}),
         dcc.Graph(id='keyword count line chart')
     ],
     style={'width': '50%', 'display': 'inline-block', 'vertical-align': 'middle'}
@@ -131,7 +140,7 @@ publicationWidget = html.Div([
 
 topPublicationWidget = html.Div(
     [
-        html.H3(children='Top Publication per Keyword', style={'textAlign': 'center'}),
+        # html.H3(children='Top Publication per Keyword', style={'textAlign': 'center'}),
         dcc.Graph(
             id='Top Publications by Keyword'
         )
@@ -141,7 +150,7 @@ topPublicationWidget = html.Div(
 
 topUniversityWidget = html.Div(
     [
-        html.H3(children='Top University/Faculty per Keyword', style={'textAlign': 'center'}),
+        # html.H3(children='Top University/Faculty per Keyword', style={'textAlign': 'center'}),
         dcc.Graph(
             id='Top University by Keyword'
         )
@@ -151,7 +160,7 @@ topUniversityWidget = html.Div(
 
 topTenKeywordsWidget = html.Div(
     [
-        html.H3(children='Top Ten Keywords', style={'textAlign': 'center'}),
+        # html.H3(children='Top Ten Keywords', style={'textAlign': 'center'}),
         dcc.Graph(
             id='Top Keywords',
             figure=keywordfig
@@ -161,6 +170,7 @@ topTenKeywordsWidget = html.Div(
 )
 
 keywordGroup = html.Div([
+    topTenKeywordsWidget,
     html.P(children='Please the dropdown list to select interested keywords'),
     keywordDropdown,
     # html.Hr(style={'border': '1px solid'}),
@@ -169,7 +179,7 @@ keywordGroup = html.Div([
     yearSlider,
     # html.Hr(style={'border': '1px solid'}),
     topUniversityWidget,
-    topTenKeywordsWidget
+    
 ])
 # textwrap function
 def customwrap(s,width=30):
@@ -337,7 +347,7 @@ def updateTop15PublicationsByKeyword(dropDownValue, rangeSliderValue):
             paper_bgcolor=colors['papper'], 
             plot_bgcolor=colors['plot'],
             title={
-                'text': 'Top Publication per Keyword',
+                'text': 'Top Publication by Keyword',
                 'font_size':20,
                 'x':0.5,
                 'xanchor': 'center',
@@ -364,7 +374,16 @@ def updateUniveristyFacultyByKeyword(dropDownValue):
         # width=1000, 
         height=700
         )# hover_name='University', hover_data=['Publication_count'])
-    fig.update_layout(paper_bgcolor=colors['papper'], plot_bgcolor=colors['plot'])
+    fig.update_layout(
+                paper_bgcolor=colors['papper'], 
+                plot_bgcolor=colors['plot'],
+                title={
+                'text': 'Top University/Faculty by Keyword',
+                'font_size':20,
+                'x':0.5,
+                'xanchor': 'center',
+                'yanchor': 'top'}
+                    )
     fig.update_traces(textinfo='label+value')
     return fig
 

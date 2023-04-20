@@ -19,7 +19,7 @@ class neo4j_utils:
         query = """MATCH (K:KEYWORD)<--(P:PUBLICATION) 
                 RETURN K.name AS name, COUNT(P) AS keyword_count 
                 ORDER BY keyword_count DESC 
-                LIMIT 10"""
+                LIMIT 20"""
         with self.driver.session(database="academicworld") as session:
             result = session.run(query)
             df = pd.DataFrame(result.data())
