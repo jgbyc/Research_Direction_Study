@@ -62,7 +62,8 @@ class MysqlDriver:
         if len(self.getFaculty(insertName, insertPosition, insertEmail, insertPhone, insertUniversityName)) > 0:
             return 'Faculty exist.'
 
-        args = [insertName, insertPosition, insertResearchInterest, insertEmail, insertPhone, insertPhotoURL, insertUniversityName]
+        args = [self.xstr(insertName), self.xstr(insertPosition), self.xstr(insertResearchInterest), self.xstr(insertEmail),
+                self.xstr(insertPhone), self.xstr(insertPhotoURL), self.xstr(insertUniversityName)]
         db = mysql.connector.connect(**self.__config)
         cursor = db.cursor()
         try:

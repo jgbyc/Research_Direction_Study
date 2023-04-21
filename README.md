@@ -1,13 +1,19 @@
 # Title
-Name of your application.
+Research Direction Study.
 # Purpose
-What is the application scenario? Who are the target users? What are the objectives?
+This dash board can assist students to efficiently seek and determine the appropriate research topic. 
+
+The target user should be students or any personnel who has interests on current popular research trends.
+
 # Demo
 Give the link to your video demo. Read the video demo section below to understand what contents are expected in your demo.
 # Installation
-How to install the application? You don’t need to include instructions on how to install and initially populate the databases if you only use the given dataset.
+1. Install python package by using the requirements.txt
+2. Run SQL script sql_install.sql
 # Usage
-How to use it? 
+1. View the top ten research keywords from the Top Keyword widget.
+2. Select multiple interested keywords from the keywords dropdown list.
+3. Drag the double end slider to view the plots at interested time range.
 # Design
 What is the design of the application? Overall architecture and components.
 # Implementation

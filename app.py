@@ -83,17 +83,17 @@ facultyWidget = html.Div([
         style_cell={'textAlign': 'left'},
         style_data={
         'color': 'black',
-        'backgroundColor': 'white',
+        'backgroundColor': colors['papper'],
         'whiteSpace': 'normal',
         'height': 'auto'
         },
         style_data_conditional=[
         {
             'if': {'row_index': 'odd'},
-            'backgroundColor': 'rgb(220, 220, 220)',
+            'backgroundColor': colors['plot'],
         }],
         style_header={
-            'backgroundColor': 'rgb(210, 210, 210)',
+            'backgroundColor': colors['plot'],
             'color': 'black',
             'fontWeight': 'bold'
         }
@@ -103,7 +103,7 @@ facultyWidget = html.Div([
 ])
 
 publicationWidget = html.Div([
-    html.H3(children='Publication\' Information', style={'textAlign': 'center'}),
+    html.H3(children='Publication\'s Information', style={'textAlign': 'center'}),
     html.P(children='Please use this wideget to search and insert the publication\'s information.'),
 
     html.Div([
@@ -121,17 +121,17 @@ publicationWidget = html.Div([
         style_cell={'textAlign': 'left'},
         style_data={
         'color': 'black',
-        'backgroundColor': 'white',
+        'backgroundColor': colors['papper'],
         'whiteSpace': 'normal',
         'height': 'auto'
         },
         style_data_conditional=[
         {
             'if': {'row_index': 'odd'},
-            'backgroundColor': 'rgb(220, 220, 220)',
+            'backgroundColor': colors['plot'],
         }],
         style_header={
-            'backgroundColor': 'rgb(210, 210, 210)',
+            'backgroundColor': colors['plot'],
             'color': 'black',
             'fontWeight': 'bold'
         }       
@@ -171,6 +171,14 @@ topTenKeywordsWidget = html.Div(
     style={'width': '100%', 'display': 'inline-block', 'vertical-align': 'middle'}
 )
 
+tableGroup = html.Div(
+    [
+        facultyWidget,
+        publicationWidget
+    ],
+    style={'backgroundColor': colors['papper']}
+)
+
 keywordGroup = html.Div([
     topTenKeywordsWidget,
     html.P(children='Please use the dropdown list to select interested keywords'),
@@ -190,10 +198,9 @@ def customwrap(s,width=30):
 # Main layout
 app.layout = html.Div(
     [
-        html.H1(children='Research Interest Study', style={'textAlign': 'center'}),
+        html.H1(children='Research Topic Study', style={'textAlign': 'center'}),
         keywordGroup,
-        facultyWidget,
-        publicationWidget
+        tableGroup
     ],
     id='mainDiv',
     style={'margin': 'auto', 'width': '85%'}
@@ -255,6 +262,7 @@ def updateKeywordCountLineChart(dropDownValue, rangeSliderValue):
     Output('faculty table', 'data'),
     Output('faculty table', 'tooltip_data'),
     Output('faculty table', 'selected_rows'),
+    Output('insert new faculty state', 'children'),
     Input('faculty name', 'value'),
     Input('faculty position', 'value'),
     Input('faculty email', 'value'),
@@ -271,10 +279,10 @@ def getFacultyInformation(queryName, queryPosition, queryEmail, queryPhone, quer
                 'type': 'markdown'
             } for column in row
         } for row in data]
-    return data, tooltip_data, []
+    return data, tooltip_data, [], ''
 
 @app.callback(
-    Output('insert new faculty state', 'children'),
+    Output('insert new faculty state', 'children', allow_duplicate=True),
     Input('insert faculty button', 'n_clicks'),
     State('faculty name', 'value'),
     State('faculty position', 'value'),
@@ -282,7 +290,8 @@ def getFacultyInformation(queryName, queryPosition, queryEmail, queryPhone, quer
     State('faculty phone', 'value'),
     State('faculty university name', 'value'),
     State('faculty research interest', 'value'),
-    State('faculty photo_url', 'value')
+    State('faculty photo_url', 'value'),
+    prevent_initial_call=True
 )
 def updateFaculty(n_clicks, insertName, insertPosition, insertEmail, insertPhone, insertUniversityName, insertResearchInterest, insertPhotoURL):
     if (n_clicks == 0):
@@ -294,6 +303,7 @@ def updateFaculty(n_clicks, insertName, insertPosition, insertEmail, insertPhone
 @app.callback(
     Output('publication table', 'data'),
     Output('publication table', 'selected_rows'),
+    Output('delete publication state', 'children'),
     Input('publication title', 'value'),
     Input('publication venue', 'value'),
     Input('publication year', 'value'),
@@ -308,13 +318,14 @@ def getPublicationInformation(queryTitle, queryVenue, queryYear, queryNumOfCitat
             facultyIDList.append(facultyTableData[i]['id'])
     queryResult = mysqlDriver.getPublication(queryTitle, queryVenue, queryYear, queryNumOfCitations, facultyIDList)
     data = pd.DataFrame(data=queryResult, columns=['id', 'Title', 'Venue', 'Year', 'Number of Citations']).reset_index().to_dict('records')
-    return data, []
+    return data, [], ''
 
 @app.callback(
-    Output('delete publication state', 'children'),
+    Output('delete publication state', 'children', allow_duplicate=True),
     Input('delete publication button', 'n_clicks'),
     State('publication table', 'data'),
     State('publication table', 'selected_rows'),
+    prevent_initial_call=True
 )
 def updatePublication(n_clicks, publicationData, selectedRows):
     if (n_clicks == 0):
