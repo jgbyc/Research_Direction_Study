@@ -119,6 +119,7 @@ publicationWidget = html.Div([
         columns=[{'name': '', 'id': 'index'}, {'name': 'Title', 'id': 'Title'}, {'name': 'Venue', 'id': 'Venue'}, {'name': 'Number of Citations', 'id': 'Number of Citations'}],
         page_size=6,
         row_selectable='multi',
+        sort_action="native",
         style_cell={'textAlign': 'left'},
         style_data={
         'color': 'black',
