@@ -38,10 +38,10 @@ keywordfig = px.bar(
                 'xanchor': 'center',
                 'yanchor': 'top'}
                 )
-
 keywordDropdown = dcc.Dropdown(
     id='keyword selection',
     options=[row[0] for row in completeKeywordSet],
+    placeholder="select keyword(s)",
     value=['machine learning', 'simulation', 'neural networks'],
     multi=True,
 )
@@ -80,6 +80,7 @@ facultyWidget = html.Div([
         columns=[{'name': '', 'id': 'index'}, {'name': 'Name', 'id': 'Name'}, {'name': 'Position', 'id': 'Position'}, {'name': 'Email', 'id': 'Email'},
                  {'name': 'Phone', 'id': 'Phone'}, {'name': 'University', 'id': 'University'}],
         row_selectable='multi',
+        sort_action="native",
         style_cell={'textAlign': 'left'},
         style_data={
         'color': 'black',
@@ -412,6 +413,24 @@ def updateUniveristyFacultyByKeyword(dropDownValue):
                     )
     fig.update_traces(textinfo='label+value')
     return fig
+
+@app.callback(
+    Output('keyword selection', 'value'),
+    Input('Top Keywords', 'clickData'),
+    State('keyword selection', 'value'),
+)
+def fig_click(clickData,value):
+    # print(value)
+    value=value
+    if clickData:
+        keyword = clickData['points'][0]['label']
+        # print(clickData['points'][0]['label'])
+        if keyword not in value:
+            value.append(keyword)
+        return value
+    else:
+        return value
+
 
 
 if __name__ == '__main__':
