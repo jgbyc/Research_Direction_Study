@@ -46,6 +46,7 @@ Kun Ren (kunren2@illinois.edu) implements below functionalities in 35 ~ 40 h:
 
 Yichen Bi (ybi5@illinois.edu) implements below functionalities in 35 ~ 40 h:
 * mysql_utils.py
+* sql_install.sql
 * Keyword Count Trend Widget
 * Faculty's Information Widget
 * Publication's Information Widget
