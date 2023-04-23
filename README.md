@@ -6,12 +6,12 @@ This dash board can assist students to efficiently seek and determine the approp
 The target user should be students or any personnel who has interests on current popular research trends.
 
 # Demo
-Give the link to your video demo. Read the video demo section below to understand what contents are expected in your demo.
+https://mediaspace.illinois.edu/media/t/1_rmipggz9
 # Installation
 1. Install python package by using the requirements.txt
 2. Run SQL script sql_install.sql
 # Usage
-1. View the top ten research keywords from the Top Keyword widget to get the rough idea of current popular research topics.
+1. View the top 20 research keywords from the Top Keyword widget to get the rough idea of current popular research topics.
 2. From the dropdown list, select several interested keywords for further investigation.
 3. From the Keyword count trend widget, users can know the number of publications containing the selected keywords per year.
 4. From the Top publication by keyword widget, users can view the highest citied publications containing the selected keywords per year.
