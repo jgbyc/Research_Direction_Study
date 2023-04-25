@@ -3,7 +3,7 @@ Research Direction Study.
 # Purpose
 This dash board can assist students to efficiently seek and determine the appropriate research topic. 
 
-The target user should be students or any personnel who has interests on current popular research trends.
+The target users can range from students who are looking to apply to a graduate school, researchers who would like to find cooperation with others to any personnel who would like to discover the academic world based on their interest. 
 
 # Demo
 https://mediaspace.illinois.edu/media/t/1_rmipggz9
@@ -11,14 +11,14 @@ https://mediaspace.illinois.edu/media/t/1_rmipggz9
 1. Install python package by using the requirements.txt
 2. Run SQL script sql_install.sql
 # Usage
-1. View the top 20 research keywords from the Top Keyword widget to get the rough idea of current popular research topics.
+1. View the top 20 research keywords from the Top Keyword widget to get the rough idea of current popular research topics. User can also click on the any of the top keyword, that keyword will be added to the keyword selection list so that they can explore the trend, to publication and top university/faculty based on this keyword using the other widgets in the application.
 2. From the dropdown list, select several interested keywords for further investigation.
 3. From the Keyword count trend widget, users can know the number of publications containing the selected keywords per year.
 4. From the Top publication by keyword widget, users can view the highest citied publications containing the selected keywords per year.
 5. By dragging the double end sliders, users can zoom into the interested time range to better investigate the details of two aforementioned widgets.
 6. By using the Treemap Top University/Faculty widget, users can find top universities and corresponding faculties which are most contributing to the selected keywords.
 7. If users would like to know the detailed contact information of certain faculties, they can use the widget Faculty's Information to search and filter the faculty information. If searched faculty does not exist in the database, a new faculty record and corresponding university record can be added into the database by clicking on the Button Insert New Faculty.
-8. When user check the faculty information, the publication's information widget will be filtered to show only publications written by selected faculties. Also, users may choose to further filter by entering the publications information. By checking the certain publications and click on the Button Delete listed publications, the corresponding publications will be removed from the database.
+8. If one ore more faculty is selected from the faculty information table, the publication's information widget will be filtered to show only publications written by selected faculties. Also, users may choose to further filter by entering the publications information. By checking the certain publications and click on the Button Delete listed publications, the corresponding publications will be removed from the database.
 # Design
 This dashboard is layout in rectangular shape. Also, related widgets are bundled and listed together. The layout sequence of widget is intentionally designed to match the expected trends of thoughts and behavior flows. Also, the continuous  color palette is used to make the graph better visualized. 
 # Implementation
